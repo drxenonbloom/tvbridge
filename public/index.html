@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#225c48">
+  <meta name="description" content="Connect to your Google TV and install an APK from a link. A simple, self-hosted bridge to your big screen.">
+  <title>TV Bridge — A little link. A bigger screen.</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="TV Bridge home"><img src="/favicon.svg" width="39" height="39" alt=""><span>tv<span class="brand-light">bridge</span><span class="brand-dot">.</span></span></a>
+      <div class="sidebar-main">
+        <p class="nav-label">YOUR WORKSPACE</p>
+        <a class="nav-item active" href="/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"/></svg>Install an app<span class="nav-arrow">↗</span></a>
+        <button class="nav-item" id="guide-open"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 8a3.5 3.5 0 0 1 7 0c0 3-3.5 2.5-3.5 5m0 3v.2"/><circle cx="12" cy="12" r="10"/></svg>Setup guide</button>
+      </div>
+      <div class="sidebar-note"><span class="network-icon">⌁</span><strong>Your network. Your TV.</strong><p>Apps go straight from this server to your big screen.</p><div class="local-label"><span class="dot"></span>SELF-HOSTED & LOCAL</div></div>
+      <div class="sidebar-footer">TV Bridge <span>v1.0</span></div>
+    </aside>
+
+    <main>
+      <header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong>Install an app</strong></div><div class="service-status" id="service-status"><span class="dot"></span><span id="service-label">Connecting to server</span></div></header>
+      <div class="workspace">
+        <section class="intro">
+          <div><div class="eyebrow"><span></span> A SMALL BRIDGE TO YOUR BIG SCREEN</div><h1>More possibilities.<br><span>Less remote clicking.</span></h1><p>Bring your favorite apps to Google TV. Connect your device,<br class="desktop-break"> paste an APK link, and we’ll take it from there.</p></div>
+          <div class="tv-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="art-star star-one">✦</div><div class="art-star star-two">✧</div><div class="art-tv"><div class="art-screen"><span class="art-play">▶</span><span class="art-screen-dot"></span><div class="art-screen-lines"><i></i><i></i><i></i></div></div><div class="art-tv-foot"></div></div><span class="art-chip">a little link → a bigger screen</span></div>
+        </section>
+
+        <div id="notification" class="notification hidden" role="alert"></div>
+        <div id="adb-warning" class="notification warning hidden">ADB isn’t installed on this server. Start the app with Docker to use the included ADB tools.</div>
+
+        <div class="work-grid">
+          <div class="steps-column">
+            <section class="card connection-card" aria-labelledby="connection-title">
+              <div class="card-heading"><div class="step-number" id="connect-step">01</div><div><h2 id="connection-title">Connect your TV</h2><p>Same network. One quick connection.</p></div><span class="pill" id="device-badge">NOT CONNECTED</span></div>
+              <div class="library-section"><div class="library-heading"><label for="saved-device">Your saved TVs</label><button type="button" class="text-button" id="add-device">+ Add TV</button></div><p id="saved-device-empty" class="library-help">TVs you connect to are saved here automatically.</p><div id="saved-device-controls" class="saved-controls hidden"><select id="saved-device" aria-label="Saved TV"><option value="">Choose a saved TV…</option></select><button type="button" class="button button-secondary" id="saved-connect">Connect</button><button type="button" class="text-button" id="edit-device">Edit</button></div><p id="saved-device-hint" class="library-help hidden"></p></div>
+              <div class="wireless-tip"><strong>Android 14 or a newer TV?</strong><p>If your TV offers <strong>Wireless debugging</strong>, pair with its six-digit code first. USB debugging alone may not allow a network connection.</p><button type="button" class="text-button" id="wireless-guide-open">See the TV screens &amp; what to enter ↗</button></div>
+              <div id="pair-next-step" class="pair-next-step hidden" role="status"><strong>TV paired. One more step.</strong><p>Close the pairing-code popup on your TV. On the main <strong>Wireless debugging</strong> screen, find <strong>IP address &amp; port</strong> for <span id="paired-ip"></span>. Enter that connection port below, then choose <strong>Finish connecting</strong>.</p><p>The connection port is different from the pairing port. Pairing is already saved; you do not need another code.</p></div>
+              <form id="connect-form">
+                <div class="input-row"><div class="field grow"><label for="device-ip">TV IP address</label><input id="device-ip" name="ip" placeholder="192.168.1.42" inputmode="decimal" autocomplete="off" spellcheck="false" required maxlength="15"><span class="field-hint">The numbers before the colon (:).</span></div><div class="field port-field"><label for="device-port"><span id="port-label">Connection port</span></label><input id="device-port" name="port" type="number" min="1" max="65535" value="5555" required></div></div>
+                <p id="connection-port-hint" class="field-hint">For Wireless debugging, use the port on its main screen. Port 5555 is for traditional network debugging and may not work on your TV.</p>
+                <button class="button button-connect" id="connect-button" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></svg><span>Connect to TV</span><span class="button-arrow">→</span></button>
+              </form>
+              <div id="connected-info" class="connected-info hidden"><div class="connected-device-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></svg></div><div class="grow"><strong id="device-model"></strong><span id="device-address"></span></div><button id="disconnect-button" class="text-button">Disconnect</button></div>
+              <div class="connection-footer"><span class="small-info">ⓘ</span><span>Keep your TV on and allow the debugging prompt.</span></div>
+              <details id="pair-details"><summary>Developer options showing "Wireless debugging"? <span>Pair a device ↗</span></summary><form id="pair-form"><p class="pair-help">Open <strong>Wireless debugging → Pair device with pairing code</strong> on your TV. Keep that popup open while pairing. Copy its IP, pairing port, and six-digit code into these fields.</p><button type="button" class="text-button" id="pair-guide-open">Show me which number goes where ↗</button><div class="input-row"><div class="field grow"><label for="pair-ip">TV IP address</label><input id="pair-ip" placeholder="192.168.1.42" inputmode="decimal" required maxlength="15"><span class="field-hint">Before the colon (:), without the port.</span></div><div class="field port-field"><label for="pair-port">Pairing port</label><input id="pair-port" type="number" min="1" max="65535" placeholder="37099" required><span class="field-hint">After the colon in the pairing popup.</span></div></div><div class="input-row pair-code-row"><div class="field grow"><label for="pair-code">Six-digit code</label><input id="pair-code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456" autocomplete="off" required><span class="field-hint">The separate Wi-Fi pairing code, not a port.</span></div><button class="button button-secondary" type="submit" id="pair-button">Pair TV</button></div></form></details>
+            </section>
+
+            <section class="card install-card" aria-labelledby="install-title">
+              <div class="card-heading"><div class="step-number">02</div><div><h2 id="install-title">Give your TV something new</h2><p>One APK link. That’s all you need.</p></div></div>
+              <div class="library-section"><div class="library-heading"><label for="saved-preset">Saved app links</label><button type="button" class="text-button" id="add-preset">+ Save a link</button></div><div class="saved-controls"><select id="saved-preset" aria-label="Saved app link"><option value="">No saved app links yet</option></select><button type="button" class="text-button" id="edit-preset">Edit</button></div></div>
+              <form id="install-form">
+                <div class="field"><label for="apk-url">APK download link</label><div class="url-input"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 13 4-4m-7 6-1 1a4 4 0 0 0 6 6l4-4a4 4 0 0 0 0-6M8 12a4 4 0 0 1 0-6l4-4a4 4 0 0 1 6 6l-1 1"/></svg><input id="apk-url" name="url" type="url" placeholder="https://example.com/your-app.apk" autocomplete="off" spellcheck="false" required></div><span class="field-hint">Use a direct link to a single .apk file from a source you trust.</span></div>
+                <label class="checkbox-label"><input id="replace-app" type="checkbox" checked><span>Update the app if it’s already installed</span><span class="checkbox-info" title="Uses adb install -r to keep existing app data when the APK signature matches.">ⓘ</span></label>
+                <button class="button button-primary" id="install-button" type="submit" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"/></svg><span>Install on TV</span><span class="button-arrow">↗</span></button><p class="install-hint" id="install-hint">Connect your TV to get started.</p>
+              </form>
+            </section>
+          </div>
+
+          <section class="activity-card" aria-labelledby="activity-title"><div class="activity-heading"><div><span class="live-dot"></span><h2 id="activity-title">Live activity</h2></div><span class="terminal-tag">TERMINAL</span></div><div class="terminal-meta"><div class="traffic-lights"><i></i><i></i><i></i></div><span>tv-bridge / adb</span><button id="copy-log" title="Copy terminal output" aria-label="Copy terminal output"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M15 8V3H3v12h5"/></svg></button></div><div class="terminal" id="terminal" role="log" aria-label="Live ADB terminal output" aria-live="off" tabindex="0"><div class="terminal-welcome"><span class="terminal-mark">↳</span><p>Good things are coming<br>to your big screen.</p><span>Your connection, download, and install<br>updates will appear right here.</span><div class="terminal-prompt"><span>~</span> waiting for a connection <i></i></div></div></div><div class="activity-progress"><div class="progress-top"><span id="progress-label">Ready when you are</span><span id="progress-value">—</span></div><progress id="progress-bar" max="100" value="0" aria-label="Operation progress"></progress><div class="activity-bottom"><span id="activity-caption">Everything happens on your network.</span><button id="cancel-button" class="hidden">Cancel</button></div></div><div class="terminal-footer"><span>⌁</span> A direct connection. A little less complicated.</div></section>
+        </div>
+
+        <section class="help-strip"><div class="help-icon">✦</div><div><strong>Newer TV? Start with Wireless debugging.</strong><p>Follow the visual guide to pair your TV and find the right connection port.</p></div><button class="text-button" id="guide-strip">Show me how <span>↗</span></button></section>
+        <footer class="page-footer"><span>Made for the big screen, with the small details in mind.</span><span>Google TV & Android TV compatible</span></footer>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="guide-dialog" aria-labelledby="guide-title">
+    <div class="dialog-top guide-top"><span class="eyebrow">YOUR TV, STEP BY STEP</span><button id="guide-close" aria-label="Close setup guide">×</button></div>
+    <h2 id="guide-title">Wireless debugging,<br>without the guesswork.</h2>
+    <p class="dialog-intro">For an Android 14 TV, start with <strong>Wireless debugging</strong> if your TV offers it. This pairs your TV without a USB cable. Menu names and availability vary by manufacturer.</p>
+    <p class="guide-example-note">The screens below are recreations with example numbers. Always copy the numbers from <strong>your own TV</strong>.</p>
+    <ol class="guide-steps visual-guide-steps">
+      <li><h3>Turn on Wireless debugging</h3><p>Keep the TV and the computer running this app on the same home network. On the TV, open <strong>Settings → System → About</strong> and select <strong>Android TV OS build</strong> seven times to unlock developer options.</p><p>Go back to <strong>System → Developer options → Wireless debugging</strong>. Turn it on and allow it on your home network if asked. Enabling <strong>USB debugging</strong> alone may not enable network access.</p></li>
+      <li id="guide-pair-screen"><h3>Pair using the popup’s numbers</h3><p>Choose <strong>Pair device with pairing code</strong> on the TV. Leave this popup open while you fill in <strong>Pair a device</strong> in this app.</p>
+        <figure class="tv-guide-figure" aria-labelledby="pair-screen-caption">
+          <div class="tv-recreation pairing-recreation"><div class="mock-tv-context" aria-hidden="true">Settings <span>›</span> Wireless debugging</div><div class="mock-pair-dialog"><div class="mock-screen-title">Pair with device</div><div class="mock-label">Wi-Fi pairing code</div><div class="mock-code"><span class="guide-token token-code">123456</span><span class="mock-callout">3</span></div><div class="mock-label">IP address &amp; port</div><div class="mock-address"><span class="guide-token token-ip">192.168.1.42</span><span class="mock-colon">:</span><span class="guide-token token-pair-port">37099</span></div><div class="mock-address-labels" aria-hidden="true"><span>1 · IP address</span><span>2 · pairing port</span></div><div class="mock-cancel" aria-hidden="true">Cancel</div></div></div>
+          <figcaption id="pair-screen-caption">Example: the <strong>pairing popup</strong>. These three values go into the app’s <strong>Pair a device</strong> form.</figcaption>
+        </figure>
+        <dl class="number-key"><div><dt><span class="key-number key-ip">1</span>TV IP address</dt><dd><code>192.168.1.42</code> — everything <strong>before the colon</strong> (:). Enter only this part in <strong>TV IP address</strong>.</dd></div><div><dt><span class="key-number key-pair-port">2</span>Pairing port</dt><dd><code>37099</code> — the number <strong>after the colon</strong> in this popup. Enter it in <strong>Pairing port</strong>.</dd></div><div><dt><span class="key-number key-code">3</span>Six-digit code</dt><dd><code>123456</code> — the separate <strong>Wi-Fi pairing code</strong>. Enter all six digits in <strong>Six-digit code</strong>, then choose <strong>Pair TV</strong>.</dd></div></dl>
+        <p class="guide-small-note">If pairing fails, open a fresh pairing popup and use its new code and port. The six-digit code is not the port.</p>
+      </li>
+      <li id="guide-connect-screen"><h3>Connect using the main screen’s port</h3><p>The app tries to connect automatically after pairing. If it shows <strong>TV paired. One more step.</strong>, close the TV’s pairing popup. Stay on the main <strong>Wireless debugging</strong> screen.</p>
+        <figure class="tv-guide-figure" aria-labelledby="connect-screen-caption">
+          <div class="tv-recreation connection-recreation"><div class="mock-wireless-settings"><div class="mock-screen-title">Wireless debugging</div><div class="mock-settings-row"><span>Use wireless debugging</span><span class="mock-toggle" aria-label="On"></span></div><div class="mock-settings-group"><div class="mock-label">Device name</div><div>Living room TV</div></div><div class="mock-settings-group"><div class="mock-label">IP address &amp; port</div><div class="mock-address"><span class="guide-token token-ip">192.168.1.42</span><span class="mock-colon">:</span><span class="guide-token token-connect-port">41113</span></div><div class="mock-address-labels" aria-hidden="true"><span>Same IP address</span><span>Connection port</span></div></div><div class="mock-pair-menu">Pair device with pairing code <span aria-hidden="true">›</span></div></div></div>
+          <figcaption id="connect-screen-caption">Example: the <strong>main Wireless debugging screen</strong>. Its connection port is different from the pairing popup’s port.</figcaption>
+        </figure>
+        <dl class="number-key"><div><dt><span class="key-number key-ip">1</span>TV IP address</dt><dd><code>192.168.1.42</code> — use the address <strong>before the colon</strong> again.</dd></div><div><dt><span class="key-number key-connect-port">2</span>Connection port</dt><dd><code>41113</code> — use the number <strong>after the colon on this main screen</strong>. Enter it in <strong>Connection port</strong> in this app, then choose <strong>Finish connecting</strong> or <strong>Connect to TV</strong>.</dd></div></dl>
+        <div class="port-comparison"><strong>Two screens. Two different ports.</strong><p>Pairing popup: <code>37099</code> → <strong>Pair TV</strong><br>Main screen: <code>41113</code> → <strong>Connect to TV</strong></p><p>Do not reuse the pairing port for connecting. Wireless debugging uses the ports shown on your TV; do not assume port 5555 will work.</p></div>
+      </li>
+      <li><h3>Install your app</h3><p>Wait for the green <strong>CONNECTED</strong> badge. Paste a direct APK link or choose a saved app link, then select <strong>Install on TV</strong>. Pairing alone does not enable installation; the TV must also be connected.</p><p>Your TV is saved for next time. If its IP address or connection port changes, update the saved TV with <strong>Edit</strong> using the main Wireless debugging screen. You usually do not need a new pairing code while the authorization is still saved.</p></li>
+    </ol>
+    <details class="legacy-guide"><summary>My TV doesn’t have Wireless debugging</summary><p>Check its developer options for <strong>Network debugging</strong> or <strong>ADB debugging</strong>. Some older TVs use port <strong>5555</strong>; use the port shown by your TV when available. Enable USB debugging as well if your model requires it, enter the TV’s IP and port, then approve the debugging prompt on the TV.</p><p>Some models require an initial USB setup to enable network access. This app cannot turn on a disabled debugging service remotely. Use your TV manufacturer’s instructions if these options are missing.</p></details>
+    <div class="guide-note"><strong>Still can’t connect?</strong><p>Check the TV’s current IP and connection port, keep Wireless debugging on, and check for a prompt on the TV. Guest Wi-Fi, device isolation, firewalls, or a VPN can prevent a connection. A saved TV can need a new port after restarting or toggling Wireless debugging.</p></div>
+    <p class="guide-link"><a href="https://developer.android.com/tools/adb#connect-to-a-device-over-wi-fi" target="_blank" rel="noopener noreferrer">Official Android wireless debugging instructions ↗</a></p>
+    <button class="button button-primary" id="guide-done">Got it, let’s connect <span>→</span></button>
+  </dialog>
+  <dialog id="library-dialog" aria-labelledby="library-dialog-title"><div class="dialog-top"><span class="eyebrow">MAKE IT YOURS</span><button type="button" id="library-close" aria-label="Close saved item editor">×</button></div><h2 id="library-dialog-title">Save an app link</h2><p class="dialog-intro" id="library-dialog-description">Give this APK link a name so it’s easy to find next time.</p><p id="library-error" class="notification hidden" role="alert"></p><form id="library-form"><input id="library-id" type="hidden"><div class="field"><label for="library-name">Name</label><input id="library-name" required maxlength="60" placeholder="e.g. Living room TV"></div><div id="library-device-fields" class="input-row"><div class="field grow"><label for="library-ip">TV IP address</label><input id="library-ip" inputmode="decimal" placeholder="192.168.1.42" maxlength="15"></div><div class="field port-field"><label for="library-port">Connection port</label><input id="library-port" type="number" min="1" max="65535" value="5555"></div></div><div id="library-preset-fields" class="field"><label for="library-url">APK download link</label><input id="library-url" type="url" placeholder="https://example.com/your-app.apk" spellcheck="false"><span class="field-hint">Saved links are available to everyone who can access this app.</span></div><div class="library-dialog-actions"><button id="library-remove" type="button" class="text-button danger hidden">Remove</button><button id="library-save" type="submit" class="button button-primary">Save</button></div></form></dialog>
+  <div class="sr-only" id="screen-reader-status" role="status" aria-live="polite"></div>
+</body>
+</html>

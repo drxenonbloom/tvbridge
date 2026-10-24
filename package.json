@@ -1,0 +1,14 @@
+{
+  "name": "tv-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A friendly, self-hosted Google TV APK installer",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "test": "node --test",
+    "check": "node --check server.mjs && node --check lib/adb.mjs && node --check lib/download.mjs && node --check lib/jobs.mjs && node --check lib/library.mjs && node --check public/app.js"
+  }
+}

@@ -1,0 +1,26 @@
+services:
+  tv-bridge:
+    platform: linux/amd64
+    build: .
+    init: false
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-3000}:3000"
+    environment:
+      APP_PASSWORD: ${APP_PASSWORD:-}
+      APP_ALLOWED_HOSTS: ${APP_ALLOWED_HOSTS:-}
+      MAX_APK_MB: ${MAX_APK_MB:-512}
+      DATA_DIR: /home/node/data
+    volumes:
+      - adb-keys:/home/node/.android
+      - app-data:/home/node/data
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=600m,mode=1777
+
+volumes:
+  adb-keys:
+  app-data:
