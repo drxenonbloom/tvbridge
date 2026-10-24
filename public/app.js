@@ -163,7 +163,7 @@ function renderLibrary(busy) {
   $('edit-device').disabled = busy || !selected;
   $('saved-preset').disabled = busy || !library.presets.length;
   $('edit-preset').disabled = busy || !selectedPreset;
-  for (const id of ['add-device', 'add-preset', 'library-save', 'library-remove']) $(id).disabled = busy;
+  for (const id of ['add-preset', 'library-save', 'library-remove']) $(id).disabled = busy;
 }
 
 function openLibraryEditor(kind, item) {
@@ -191,7 +191,6 @@ function openLibraryEditor(kind, item) {
 
 $('saved-device').addEventListener('change', () => render());
 $('saved-connect').addEventListener('click', () => request('devices/connect', { id: $('saved-device').value }));
-$('add-device').addEventListener('click', () => openLibraryEditor('devices'));
 $('edit-device').addEventListener('click', () => {
   const item = state.library?.devices.find((entry) => entry.id === $('saved-device').value);
   if (item) openLibraryEditor('devices', item);
